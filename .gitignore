@@ -1,0 +1,46 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Airflow runtime data
+logs/
+
+# Local DAGs (GitDagBundle is used instead)
+dags/
+
+# Local plugins/config if not versioned
+plugins/
+config/airflow.cfg
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Docker / local overrides
+docker-compose.override.yml
+compose.override.yml
+
+# Temporary files
+*.log
+*.tmp
+*.bak
