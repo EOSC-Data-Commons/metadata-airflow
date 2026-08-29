@@ -1,3 +1,4 @@
+.cache_ggshield
 # Environment / secrets
 .env
 .env.*
