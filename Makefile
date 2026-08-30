@@ -1,3 +1,6 @@
+include .env
+export
+
 COMPOSE := docker compose
 
 DB ?= airflow
