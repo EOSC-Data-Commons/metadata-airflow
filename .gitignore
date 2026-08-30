@@ -39,7 +39,7 @@ htmlcov/
 
 # Docker / local overrides
 docker-compose.override.yml
-compose.override.yml
+*.override.*
 
 # Temporary files
 *.log
