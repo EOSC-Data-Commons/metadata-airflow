@@ -23,16 +23,19 @@ cp .env.example .env
 Build and start Airflow:
 
 ``` bash
-docker compose build
-docker compose up airflow-init
-docker compose up -d
+make up
 ```
 
-Check:
+Check list od DAGs:
 
 ``` bash
-docker compose ps
-docker compose exec airflow-scheduler airflow dags list
+make dags
+```
+
+List DAG import errors:
+
+``` bash
+make dags-errors
 ```
 
 ## Adding a harvester
