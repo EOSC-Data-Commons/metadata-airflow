@@ -2,6 +2,8 @@ COMPOSE := docker compose
 
 DB ?= airflow
 DB_USER ?= airflow
+BACKUP_DIR ?= backups
+TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 
 .PHONY: help init up down restart build rebuild fresh logs ps \
         dags dags-errors worker-shell scheduler-shell postgres-shell \
@@ -79,4 +81,24 @@ clean:
 	$(COMPOSE) down --remove-orphans
 
 clean-all:
-	$(COMPOSE) down -v --remove-orphans --rmi localgg
+	$(COMPOSE) down -v --remove-orphans --rmi local
+
+backup-airflow-db:
+	mkdir -p $(BACKUP_DIR)
+	docker compose exec -T postgres \
+		pg_dump \
+		-U $(AIRFLOW_DATABASE_USER) \
+		-d $(AIRFLOW_DATABASE_NAME) \
+		-F c \
+		> $(BACKUP_DIR)/airflow-$(TIMESTAMP).dump
+
+backup-toolmeta-db:
+	mkdir -p $(BACKUP_DIR)
+	docker compose exec -T postgres \
+		pg_dump \
+		-U $(TOOLMETA_HARVESTER_DATABASE__USER) \
+		-d $(TOOLMETA_HARVESTER_DATABASE__NAME) \
+		-F c \
+		> $(BACKUP_DIR)/toolmeta-$(TIMESTAMP).dump
+
+backup-db: backup-airflow-db backup-toolmeta-db
