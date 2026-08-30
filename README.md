@@ -38,6 +38,8 @@ List DAG import errors:
 make dags-errors
 ```
 
+Access Airflow UI at [http://localhost:8080](http://localhost:8080) 
+
 ## Adding a harvester
 
 A harvester repository should contain its DAGs under a folder e.g. `airflow_dags/`:
