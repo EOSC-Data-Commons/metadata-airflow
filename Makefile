@@ -33,6 +33,7 @@ help:
 	@echo "  make backup-airflow-db   	Backup Airflow database"
 	@echo "  make backup-toolmeta-db  	Backup Toolmeta database"
 	@echo "  make backup-db            	Backup both Airflow and Toolmeta databases"
+	@echo "  make restore-toolmeta-latest  Restore the latest Toolmeta database backup"
 
 init:
 	$(COMPOSE) up airflow-init
@@ -108,3 +109,19 @@ backup-toolmeta-db:
 		> $(BACKUP_DIR)/toolmeta-$(TIMESTAMP).dump
 
 backup-db: backup-airflow-db backup-toolmeta-db
+
+
+restore-toolmeta-latest:
+	@LATEST=$$(ls -1t $(BACKUP_DIR)/toolmeta-*.dump 2>/dev/null | head -n 1); \
+	if [ -z "$$LATEST" ]; then \
+		echo "No toolmeta backup found in $(BACKUP_DIR)"; \
+		exit 1; \
+	fi; \
+	echo "Restoring $$LATEST"; \
+	docker compose exec -T postgres \
+		pg_restore \
+		-U "$(AIRFLOW_DATABASE_USER)" \
+		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
+		--clean \
+		--if-exists \
+		< "$$LATEST"

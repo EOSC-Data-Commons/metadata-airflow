@@ -6,6 +6,7 @@
 
 # Airflow runtime data
 logs/
+backups/
 
 # Local DAGs (GitDagBundle is used instead)
 dags/
