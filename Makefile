@@ -32,6 +32,7 @@ help:
 	@echo "  make clean-all      				Remove containers, volumes and images"
 	@echo "  make backup-airflow-db   	Backup Airflow database"
 	@echo "  make backup-toolmeta-db  	Backup Toolmeta database"
+	@echo "  make backup-toolmeta-table  	Backup Toolmeta tool_metadata table only"
 	@echo "  make backup-db            	Backup both Airflow and Toolmeta databases"
 	@echo "  make restore-toolmeta-latest  Restore the latest Toolmeta database backup"
 
@@ -107,6 +108,16 @@ backup-toolmeta-db:
 		-d $(TOOLMETA_HARVESTER_DATABASE__NAME) \
 		-F c \
 		> $(BACKUP_DIR)/toolmeta-$(TIMESTAMP).dump
+
+backup-toolmeta-table:
+	mkdir -p $(BACKUP_DIR)
+	docker compose exec -T postgres \
+		pg_dump \
+		-U $(TOOLMETA_HARVESTER_DATABASE__USER) \
+		-d $(TOOLMETA_HARVESTER_DATABASE__NAME) \
+		-F c \
+		--table=public.tool_metadata \
+		> $(BACKUP_DIR)/tool_metadata-table.$(TIMESTAMP).dump
 
 backup-db: backup-airflow-db backup-toolmeta-db
 
