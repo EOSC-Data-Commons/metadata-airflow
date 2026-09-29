@@ -33,8 +33,10 @@ help:
 	@echo "  make backup-airflow-db   	Backup Airflow database"
 	@echo "  make backup-toolmeta-db  	Backup Toolmeta database"
 	@echo "  make backup-toolmeta-table  	Backup Toolmeta tool_metadata table only"
+	@echo "  make backup-harvestsource-table-table  	Backup Toolmeta harvest_source table only"
 	@echo "  make backup-db            	Backup both Airflow and Toolmeta databases"
 	@echo "  make restore-toolmeta-latest  Restore the latest Toolmeta database backup"
+	@echo "  make restore-toolmeta-table DUMP_FILE=<path>  Restore Toolmeta tool_metadata table from a dump file"
 
 init:
 	$(COMPOSE) up airflow-init
@@ -119,6 +121,16 @@ backup-toolmeta-table:
 		--table=public.tool_metadata \
 		> $(BACKUP_DIR)/tool_metadata-table.$(TIMESTAMP).dump
 
+backup-harvestsource-table:
+	mkdir -p $(BACKUP_DIR)
+	docker compose exec -T postgres \
+		pg_dump \
+		-U $(TOOLMETA_HARVESTER_DATABASE__USER) \
+		-d $(TOOLMETA_HARVESTER_DATABASE__NAME) \
+		-F c \
+		--table=public.harvest_source \
+		> $(BACKUP_DIR)/harvest_source-table.$(TIMESTAMP).dump
+
 backup-db: backup-airflow-db backup-toolmeta-db
 
 
@@ -136,3 +148,13 @@ restore-toolmeta-latest:
 		--clean \
 		--if-exists \
 		< "$$LATEST"
+
+restore-toolmeta-table:
+	@test -n "$(DUMP_FILE)" || (echo "Usage: make restore-toolmeta-db DUMP_FILE=path/to/tool_metadata.dump" && exit 1)
+	docker compose exec -T postgres \
+		pg_restore \
+		-U $(TOOLMETA_HARVESTER_DATABASE__USER) \
+		-d $(TOOLMETA_HARVESTER_DATABASE__NAME) \
+		--no-owner \
+		--no-privileges \
+		< $(DUMP_FILE)
