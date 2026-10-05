@@ -71,6 +71,7 @@ x-airflow-common:
     TOOLMETA_HARVESTER_DATABASE__NAME: ${TOOLMETA_HARVESTER_DATABASE__NAME}
     TOOLMETA_HARVESTER_DATABASE__USER: ${TOOLMETA_HARVESTER_DATABASE__USER}
     TOOLMETA_HARVESTER_DATABASE__PASSWORD: ${TOOLMETA_HARVESTER_DATABASE__PASSWORD}
+    TOOLMETA_HARVESTER_EGI__LLM_API_KEY: ${TOOLMETA_HARVESTER_EGI__LLM_API_KEY}
   volumes:
     # - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -85,32 +86,60 @@ x-airflow-common:
       condition: service_healthy
 
 services:
+  # postgres:
+  #   # image: postgres:16
+  #   image: pgvector/pgvector:0.8.1-pg16-trixie
+  #   environment:
+  #     # POSTGRES_USER: airflow
+  #     # POSTGRES_PASSWORD: airflow
+  #     # POSTGRES_DB: airflow
+  #     POSTGRES_USER: ${AIRFLOW_DATABASE_USER}
+  #     POSTGRES_PASSWORD: ${AIRFLOW_DATABASE_PASSWORD}
+  #     POSTGRES_DB: ${AIRFLOW_DATABASE_NAME}
+  #     TOOLMETA_HARVESTER_DATABASE__NAME: ${TOOLMETA_HARVESTER_DATABASE__NAME}
+  #     TOOLMETA_HARVESTER_DATABASE__USER: ${TOOLMETA_HARVESTER_DATABASE__USER}
+  #     TOOLMETA_HARVESTER_DATABASE__PASSWORD: ${TOOLMETA_HARVESTER_DATABASE__PASSWORD}
+  #   volumes:
+  #     - postgres-db-volume:/var/lib/postgresql/data
+  #     - ./postgres-init:/docker-entrypoint-initdb.d:ro
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD-SHELL",
+  #         "pg_isready -U ${AIRFLOW_DATABASE_USER} -d ${AIRFLOW_DATABASE_NAME}",
+  #       ]
+  #     # test: ["CMD", "pg_isready", "-U", "airflow"]
+  #     interval: 10s
+  #     retries: 5
+  #     start_period: 5s
+  #   restart: always
+
   postgres:
-    # image: postgres:16
-    image: pgvector/pgvector:0.8.1-pg16-trixie
+    image: timescale/timescaledb-ha:pg16
+
     environment:
-      # POSTGRES_USER: airflow
-      # POSTGRES_PASSWORD: airflow
-      # POSTGRES_DB: airflow
       POSTGRES_USER: ${AIRFLOW_DATABASE_USER}
       POSTGRES_PASSWORD: ${AIRFLOW_DATABASE_PASSWORD}
       POSTGRES_DB: ${AIRFLOW_DATABASE_NAME}
+
       TOOLMETA_HARVESTER_DATABASE__NAME: ${TOOLMETA_HARVESTER_DATABASE__NAME}
       TOOLMETA_HARVESTER_DATABASE__USER: ${TOOLMETA_HARVESTER_DATABASE__USER}
       TOOLMETA_HARVESTER_DATABASE__PASSWORD: ${TOOLMETA_HARVESTER_DATABASE__PASSWORD}
+
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - postgres-db-volume:/home/postgres/pgdata/data
       - ./postgres-init:/docker-entrypoint-initdb.d:ro
+
     healthcheck:
       test:
         [
           "CMD-SHELL",
           "pg_isready -U ${AIRFLOW_DATABASE_USER} -d ${AIRFLOW_DATABASE_NAME}",
         ]
-      # test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
       retries: 5
       start_period: 5s
+
     restart: always
 
   rabbitmq:
