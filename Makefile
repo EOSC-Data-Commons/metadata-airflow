@@ -134,6 +134,21 @@ backup-harvestsource-table:
 backup-db: backup-airflow-db backup-toolmeta-db
 
 
+# restore-toolmeta-latest:
+# 	@LATEST=$$(ls -1t $(BACKUP_DIR)/toolmeta-*.dump 2>/dev/null | head -n 1); \
+# 	if [ -z "$$LATEST" ]; then \
+# 		echo "No toolmeta backup found in $(BACKUP_DIR)"; \
+# 		exit 1; \
+# 	fi; \
+# 	echo "Restoring $$LATEST"; \
+# 	docker compose exec -T postgres \
+# 		pg_restore \
+# 		-U "$(AIRFLOW_DATABASE_USER)" \
+# 		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
+# 		--clean \
+# 		--if-exists \
+# 		< "$$LATEST"
+
 restore-toolmeta-latest:
 	@LATEST=$$(ls -1t $(BACKUP_DIR)/toolmeta-*.dump 2>/dev/null | head -n 1); \
 	if [ -z "$$LATEST" ]; then \
@@ -142,12 +157,22 @@ restore-toolmeta-latest:
 	fi; \
 	echo "Restoring $$LATEST"; \
 	docker compose exec -T postgres \
+		psql \
+		-U "$(AIRFLOW_DATABASE_USER)" \
+		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
+		-c "DROP EXTENSION IF EXISTS vectorscale;"; \
+	docker compose exec -T postgres \
 		pg_restore \
 		-U "$(AIRFLOW_DATABASE_USER)" \
 		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
 		--clean \
 		--if-exists \
-		< "$$LATEST"
+		< "$$LATEST"; \
+	docker compose exec -T postgres \
+		psql \
+		-U "$(AIRFLOW_DATABASE_USER)" \
+		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
+		-c "CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;"
 
 restore-toolmeta-table:
 	@test -n "$(DUMP_FILE)" || (echo "Usage: make restore-toolmeta-db DUMP_FILE=path/to/tool_metadata.dump" && exit 1)
