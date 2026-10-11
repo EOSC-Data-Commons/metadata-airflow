@@ -14,6 +14,7 @@ psql -v ON_ERROR_STOP=1 \
     --dbname "$TOOLMETA_HARVESTER_DATABASE__NAME" <<-EOSQL
     CREATE EXTENSION IF NOT EXISTS vector;
     CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
 EOSQL
 
 # Create the harvest_source table in the database

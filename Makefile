@@ -36,7 +36,7 @@ help:
 	@echo "  make backup-harvestsource-table-table  	Backup Toolmeta harvest_source table only"
 	@echo "  make backup-db            	Backup both Airflow and Toolmeta databases"
 	@echo "  make restore-toolmeta-latest  Restore the latest Toolmeta database backup"
-	@echo "  make restore-toolmeta-table DUMP_FILE=<path>  Restore Toolmeta tool_metadata table from a dump file"
+	@echo "  make restore-toolmeta-table-latest TABLE=tool_metadata  Restore Toolmeta [TABLE] from latest dump file"
 
 init:
 	$(COMPOSE) up airflow-init
@@ -134,21 +134,6 @@ backup-harvestsource-table:
 backup-db: backup-airflow-db backup-toolmeta-db
 
 
-# restore-toolmeta-latest:
-# 	@LATEST=$$(ls -1t $(BACKUP_DIR)/toolmeta-*.dump 2>/dev/null | head -n 1); \
-# 	if [ -z "$$LATEST" ]; then \
-# 		echo "No toolmeta backup found in $(BACKUP_DIR)"; \
-# 		exit 1; \
-# 	fi; \
-# 	echo "Restoring $$LATEST"; \
-# 	docker compose exec -T postgres \
-# 		pg_restore \
-# 		-U "$(AIRFLOW_DATABASE_USER)" \
-# 		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
-# 		--clean \
-# 		--if-exists \
-# 		< "$$LATEST"
-
 restore-toolmeta-latest:
 	@LATEST=$$(ls -1t $(BACKUP_DIR)/toolmeta-*.dump 2>/dev/null | head -n 1); \
 	if [ -z "$$LATEST" ]; then \
@@ -174,12 +159,29 @@ restore-toolmeta-latest:
 		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
 		-c "CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;"
 
-restore-toolmeta-table:
-	@test -n "$(DUMP_FILE)" || (echo "Usage: make restore-toolmeta-db DUMP_FILE=path/to/tool_metadata.dump" && exit 1)
+restore-toolmeta-table-latest:
+	@if [ -z "$(TABLE)" ]; then \
+		echo "Usage: make restore-toolmeta-table TABLE=tool_metadata"; \
+		exit 1; \
+	fi; \
+	LATEST=$$(ls -1t $(BACKUP_DIR)/toolmeta-*.dump 2>/dev/null | head -n 1); \
+	if [ -z "$$LATEST" ]; then \
+		echo "No toolmeta backup found in $(BACKUP_DIR)"; \
+		exit 1; \
+	fi; \
+	echo "Emptying $(TABLE)"; \
+	docker compose exec -T postgres \
+		psql \
+		-U "$(AIRFLOW_DATABASE_USER)" \
+		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
+		-c "TRUNCATE TABLE $(TABLE) CASCADE;"; \
+	echo "Restoring $(TABLE) from $$LATEST"; \
 	docker compose exec -T postgres \
 		pg_restore \
-		-U $(TOOLMETA_HARVESTER_DATABASE__USER) \
-		-d $(TOOLMETA_HARVESTER_DATABASE__NAME) \
-		--no-owner \
-		--no-privileges \
-		< $(DUMP_FILE)
+		-U "$(AIRFLOW_DATABASE_USER)" \
+		-d "$(TOOLMETA_HARVESTER_DATABASE__NAME)" \
+		--data-only \
+		--table="$(TABLE)" \
+		--exit-on-error \
+		< "$$LATEST"
+
