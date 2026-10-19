@@ -1,0 +1,3 @@
+toolmeta_harvester @ git+https://github.com/EOSC-Data-Commons/toolmeta-harvester.git@feature/add_indicies
+metadata-harvester @ git+https://github.com/EOSC-Data-Commons/metadata-crawlers.git@master
+data-commons-search @ git+https://github.com/EOSC-Data-Commons/data-commons-search.git@main
