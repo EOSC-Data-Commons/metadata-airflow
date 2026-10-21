@@ -7,6 +7,7 @@
 # Airflow runtime data
 logs/
 backups/
+pg-migration-backup/
 
 # Local DAGs (GitDagBundle is used instead)
 dags/
