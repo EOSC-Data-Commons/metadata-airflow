@@ -1,3 +1,6 @@
+# Dev
+Dockerfile.dev
+
 .cache_ggshield
 # Environment / secrets
 .env
@@ -6,7 +9,10 @@
 
 # Airflow runtime data
 logs/
+
+# Backups
 backups/
+pg-migration-backup/
 
 # Local DAGs (GitDagBundle is used instead)
 dags/
