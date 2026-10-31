@@ -1,5 +1,6 @@
-
 #!/usr/bin/env bash
+# Use install-postgres-backup.sh script to install this script as a time service
+
 set -Eeuo pipefail
 
 if [[ -z "${BACKUP_DIR:-}" ]]; then
