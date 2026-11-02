@@ -86,7 +86,7 @@ RequiresMountsFor=$PROJECT_DIR $DATABASE_BACKUP_DIR
 
 [Service]
 Type=oneshot
-User=root
+User=$DATABASE_BACKUP_USER
 WorkingDirectory=$PROJECT_DIR
 EnvironmentFile=$ENV_FILE
 ExecStart=$BACKUP_SCRIPT
