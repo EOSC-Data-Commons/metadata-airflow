@@ -31,7 +31,8 @@ source "$ENV_FILE"
 set +a
 
 REQUIRED_VARS=(
-    BACKUP_DIR
+    DATABASE_BACKUP_DIR
+    DATABASE_BACKUP_USER
     AIRFLOW_DATABASE_USER
     AIRFLOW_DATABASE_NAME
     TOOLMETA_HARVESTER_DATABASE__USER
@@ -45,8 +46,13 @@ for var in "${REQUIRED_VARS[@]}"; do
     fi
 done
 
-if [[ "$BACKUP_DIR" != /* || "$BACKUP_DIR" == "/" ]]; then
-    echo "ERROR: BACKUP_DIR must be an absolute directory other than /." >&2
+if [[ "$DATABASE_BACKUP_DIR" != /* || "$DATABASE_BACKUP_DIR" == "/" ]]; then
+    echo "ERROR: DATABASE_BACKUP_DIR must be an absolute directory other than /." >&2
+    exit 1
+fi
+
+if ! id "$DATABASE_BACKUP_USER" &>/dev/null; then
+    echo "ERROR: User '$DATABASE_BACKUP_USER' does not exist." >&2
     exit 1
 fi
 
@@ -62,19 +68,22 @@ fi
 
 echo "Installing PostgreSQL backup service..."
 echo "Project: $PROJECT_DIR"
-echo "Backups: $BACKUP_DIR"
+echo "Backups: $DATABASE_BACKUP_DIR"
 
 chmod 750 "$BACKUP_SCRIPT"
 chmod 600 "$ENV_FILE"
 
-install -d -m 700 "$BACKUP_DIR"
+install -d -m 700 \
+    -o "$DATABASE_BACKUP_USER" \
+    -g "$(id -gn "$DATABASE_BACKUP_USER")" \
+    "$DATABASE_BACKUP_DIR"
 
 cat > "$SYSTEMD_DIR/$SERVICE_NAME.service" <<EOF
 [Unit]
 Description=PostgreSQL database backup
 Wants=docker.service
 After=docker.service
-RequiresMountsFor=$PROJECT_DIR $BACKUP_DIR
+RequiresMountsFor=$PROJECT_DIR $DATABASE_BACKUP_DIR
 
 [Service]
 Type=oneshot
