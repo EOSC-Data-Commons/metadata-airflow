@@ -122,5 +122,3 @@ echo "  sudo systemctl start $SERVICE_NAME.service"
 echo
 echo "View logs:"
 echo "  journalctl -u $SERVICE_NAME.service -n 100"
-EOF
-
