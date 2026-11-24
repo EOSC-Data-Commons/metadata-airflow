@@ -119,16 +119,18 @@ WITH selected AS (
     SELECT unnest(ARRAY[
         'galaxy',
         'scipion',
-        'docker',
         'jupyter notebook',
         'jupyter',
         'notebook',
         'vip',
         'rrp',
-        'nextflow',
-        'cwl',
-        'common workflow language',
-        'dockerfile'
+        'mddash',
+        'oscar',
+        'binderenvironment',
+        'binder',
+        'cernbox',
+        'boutique',
+        'sciencemesh'
 
     ]) AS name
 ),
